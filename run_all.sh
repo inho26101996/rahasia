@@ -40,6 +40,15 @@ if ! command -v npm &>/dev/null; then
     sudo apt-get install -y npm
 fi
 
+# **Cek & Install Rustup untuk Rust dan Cargo**
+if ! command -v cargo &>/dev/null; then
+    echo "$(date) - Cargo tidak ditemukan. Menginstal Rustup..." >> log.txt
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    export PATH="$HOME/.cargo/bin:$PATH"
+    echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.bashrc
+    source ~/.bashrc
+fi
+
 # **Cek & Install Solana CLI dan Solana Keygen**
 if ! command -v solana &>/dev/null || ! command -v solana-keygen &>/dev/null; then
     echo "$(date) - Solana CLI atau Solana Keygen tidak ditemukan. Menginstal..." >> log.txt
@@ -47,13 +56,18 @@ if ! command -v solana &>/dev/null || ! command -v solana-keygen &>/dev/null; th
     if [[ "$ARCH" == "aarch64" ]]; then
         echo "$(date) - Sistem menggunakan ARM (aarch64), mengompilasi Solana dari source..." >> log.txt
         sudo apt-get install -y curl git build-essential pkg-config libssl-dev clang cmake
-        git clone https://github.com/solana-labs/solana.git
-        cd solana
+
+        if [ ! -d "$HOME/solana" ]; then
+            git clone https://github.com/solana-labs/solana.git "$HOME/solana"
+        fi
+
+        cd "$HOME/solana"
         ./scripts/cargo-install-all.sh .
+        cd ~
+
         export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
         echo 'export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"' >> ~/.bashrc
         source ~/.bashrc
-        cd ..
     else
         curl --proto '=https' --tlsv1.2 -sSfL https://solana-install.solana.workers.dev | bash
         export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
@@ -69,13 +83,18 @@ if ! command -v anza &>/dev/null; then
     if [[ "$ARCH" == "aarch64" ]]; then
         echo "$(date) - Sistem menggunakan ARM (aarch64), mengompilasi Anza dari source..." >> log.txt
         sudo apt-get install -y curl git clang cmake make pkg-config libssl-dev
-        git clone https://github.com/anza-xyz/agave.git
-        cd agave
+
+        if [ ! -d "$HOME/agave" ]; then
+            git clone https://github.com/anza-xyz/agave.git "$HOME/agave"
+        fi
+
+        cd "$HOME/agave"
         cargo build --release
+        cd ~
+
         export PATH="$HOME/agave/target/release:$PATH"
         echo 'export PATH="$HOME/agave/target/release:$PATH"' >> ~/.bashrc
         source ~/.bashrc
-        cd ..
     else
         curl -sSfL https://release.anza.xyz/stable/agave-install-init | bash
         export PATH="$HOME/.local/share/anza/install/active_release/bin:$PATH"
