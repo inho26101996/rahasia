@@ -14,27 +14,26 @@ get_next_archive_number() {
 
 trap "echo 'Penghentian manual oleh pengguna.'; exit 130" INT
 
-# Pastikan folder backup ada
+# **Pastikan folder backup ada**
 mkdir -p "${BASE_ARCHIVE_DIR}"
 
 # **Atur chmod 777 di awal untuk semua script**
 chmod 777 *.sh
 
-# **Cek & Instal Python3 dan Node.js jika belum ada (Hanya di awal)**
-if ! command -v python3 &> /dev/null; then
+# **Cek & Install python3, python3-venv, dan Node.js jika belum ada**
+if ! command -v python3 &>/dev/null; then
     echo "$(date) - Python3 tidak ditemukan. Menginstal..." >> log.txt
     sudo apt-get update && sudo apt-get install -y python3 python3-pip
 fi
 
-if ! command -v npm &> /dev/null; then
-    echo "$(date) - npm tidak ditemukan. Menginstal..." >> log.txt
-    sudo apt-get update && sudo apt-get install -y npm
+if ! dpkg -s python3-venv &>/dev/null; then
+    echo "$(date) - python3-venv tidak ditemukan. Menginstal..." >> log.txt
+    sudo apt-get install -y python3-venv
 fi
 
-# **Jalankan npm install sekali di awal jika perlu**
-if [ -f package.json ] && [ ! -d node_modules ]; then
-    echo "$(date) - Menginstal dependensi Node.js..." >> log.txt
-    npm install
+if ! command -v npm &>/dev/null; then
+    echo "$(date) - npm tidak ditemukan. Menginstal..." >> log.txt
+    sudo apt-get install -y npm
 fi
 
 # **Setup Virtual Environment (venv) hanya di awal)**
@@ -52,7 +51,15 @@ if [ ! -f ".venv_installed" ]; then
     touch .venv_installed
 fi
 
-# **Mulai Looping**
+# **Jalankan npm install sekali di awal jika perlu**
+if [ -f package.json ] && [ ! -d node_modules ]; then
+    echo "$(date) - Menginstal dependensi Node.js..." >> log.txt
+    npm install
+fi
+
+echo "$(date) - Semua dependensi sudah siap. Memulai eksekusi loop..." >> log.txt
+
+# **Mulai Looping Tanpa Pengecekan Ulang Dependensi**
 while true; do
     echo "$(date) - Memulai iterasi baru" >> log.txt
 
