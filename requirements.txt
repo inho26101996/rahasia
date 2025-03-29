@@ -1,0 +1,6 @@
+base58==2.1.1
+jsonalias==0.1.1
+mnemonic==0.21
+ptyprocess==0.7.0
+solders==0.26.0
+typing_extensions==4.13.0
