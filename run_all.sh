@@ -39,6 +39,8 @@ if ! command -v solana &>/dev/null; then
     mkdir -p "$INSTALL_DIR"
     wget -O /tmp/solana-release.tar.bz2 "$ANZA_URL"
     tar -xjf /tmp/solana-release.tar.bz2 -C "$INSTALL_DIR"
+    mv "$INSTALL_DIR"/solana-release/* "$INSTALL_DIR/active_release/"
+    rm -rf "$INSTALL_DIR"/solana-release
     export PATH="$INSTALL_DIR/active_release/bin:$PATH"
     echo 'export PATH="$INSTALL_DIR/active_release/bin:$PATH"' >> ~/.bashrc
     source ~/.bashrc
