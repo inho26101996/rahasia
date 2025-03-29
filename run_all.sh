@@ -39,7 +39,7 @@ fi
 # **Cek & Install Anza CLI jika belum ada**
 if ! command -v anza &>/dev/null; then
     echo "$(date) - Anza CLI tidak ditemukan. Menginstal..." >> log.txt
-    sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
+    sh -c "$(curl -sSfL https://release.anza.xyz/v2.2.3/install)"
     export PATH="$HOME/.local/share/anza/install/active_release/bin:$PATH"
     echo 'export PATH="$HOME/.local/share/anza/install/active_release/bin:$PATH"' >> ~/.bashrc
     source ~/.bashrc
