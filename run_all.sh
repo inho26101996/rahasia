@@ -36,11 +36,9 @@ fi
 # **Cek & Install Solana CLI (Anza) langsung dari GitHub**
 if ! command -v solana &>/dev/null; then
     echo "$(date) - Solana CLI tidak ditemukan. Mengunduh dari GitHub..." >> log.txt
-    mkdir -p "$INSTALL_DIR"
+    mkdir -p "$INSTALL_DIR/active_release"
     wget -O /tmp/solana-release.tar.bz2 "$ANZA_URL"
-    tar -xjf /tmp/solana-release.tar.bz2 -C "$INSTALL_DIR"
-    mv "$INSTALL_DIR"/solana-release/* "$INSTALL_DIR/active_release/"
-    rm -rf "$INSTALL_DIR"/solana-release
+    tar -xjf /tmp/solana-release.tar.bz2 -C "$INSTALL_DIR/active_release" --strip-components=1
     export PATH="$INSTALL_DIR/active_release/bin:$PATH"
     echo 'export PATH="$INSTALL_DIR/active_release/bin:$PATH"' >> ~/.bashrc
     source ~/.bashrc
