@@ -3,6 +3,9 @@ set -e
 set -o pipefail
 
 BASE_ARCHIVE_DIR="/root/dripster/backup"
+ANZA_VERSION="v2.2.3"
+ANZA_URL="https://github.com/anza-xyz/agave/releases/download/${ANZA_VERSION}/solana-release-x86_64-unknown-linux-gnu.tar.bz2"
+INSTALL_DIR="$HOME/.local/share/solana/install"
 
 get_next_archive_number() {
     local i=1
@@ -14,85 +17,60 @@ get_next_archive_number() {
 
 trap "echo 'Penghentian manual oleh pengguna.'; exit 130" INT
 
-# **Pastikan folder backup ada**
 mkdir -p "${BASE_ARCHIVE_DIR}"
-
-# **Atur chmod 777 di awal untuk semua script**
 chmod 777 *.sh
 
 # **Cek & Install python3, python3-venv, dan Node.js jika belum ada**
 if ! command -v python3 &>/dev/null; then
-    echo "$(date) - Python3 tidak ditemukan. Menginstal..." >> log.txt
     sudo apt-get update && sudo apt-get install -y python3 python3-pip
 fi
 
 if ! dpkg -s python3-venv &>/dev/null; then
-    echo "$(date) - python3-venv tidak ditemukan. Menginstal..." >> log.txt
     sudo apt-get install -y python3-venv
 fi
 
 if ! command -v npm &>/dev/null; then
-    echo "$(date) - npm tidak ditemukan. Menginstal..." >> log.txt
     sudo apt-get install -y npm
 fi
 
-# **Cek & Install Solana CLI (Anza)**
+# **Cek & Install Solana CLI (Anza) langsung dari GitHub**
 if ! command -v solana &>/dev/null; then
-    echo "$(date) - Solana CLI tidak ditemukan. Menginstal..." >> log.txt
-    sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
-    export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-    echo 'export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"' >> ~/.bashrc
+    echo "$(date) - Solana CLI tidak ditemukan. Mengunduh dari GitHub..." >> log.txt
+    mkdir -p "$INSTALL_DIR"
+    wget -O /tmp/solana-release.tar.bz2 "$ANZA_URL"
+    tar -xjf /tmp/solana-release.tar.bz2 -C "$INSTALL_DIR"
+    export PATH="$INSTALL_DIR/active_release/bin:$PATH"
+    echo 'export PATH="$INSTALL_DIR/active_release/bin:$PATH"' >> ~/.bashrc
     source ~/.bashrc
+    rm /tmp/solana-release.tar.bz2
 fi
 
-# **Setup Virtual Environment (venv) hanya di awal**
+# **Setup Virtual Environment (venv)**
 if [ ! -d "venv" ]; then
     python3 -m venv venv
 fi
-
-# **Aktifkan Virtual Environment**
 source venv/bin/activate
 
-# **Pastikan pip install hanya dijalankan sekali**
 if [ ! -f ".venv_installed" ]; then
-    echo "$(date) - Menginstal dependensi Python..." >> log.txt
     pip install -r requirements.txt
     touch .venv_installed
 fi
 
-# **Jalankan npm install sekali di awal jika perlu**
 if [ -f package.json ] && [ ! -d node_modules ]; then
-    echo "$(date) - Menginstal dependensi Node.js..." >> log.txt
     npm install
 fi
 
-echo "$(date) - Semua dependensi sudah siap. Memulai eksekusi loop..." >> log.txt
-
-# **Mulai Looping Tanpa Pengecekan Ulang Dependensi**
 while true; do
-    echo "$(date) - Memulai iterasi baru" >> log.txt
-
     python create_wallet.py
-    echo "$(date) - Dompet dibuat" >> log.txt
-
     ./seed_to_rpk.sh
-    echo "$(date) - Seed phrase dikonversi" >> log.txt
-
     python pkbase58.py
-    echo "$(date) - Kunci privat dikonversi" >> log.txt
-
     node merge_keys.js
-    echo "$(date) - Kunci privat digabungkan" >> log.txt
-
     node dripster.js
-    echo "$(date) - Dripster selesai dijalankan" >> log.txt
 
-    # **Buat Backup**
     ARCHIVE_NUMBER=$(get_next_archive_number)
     ARCHIVE_FOLDER="${BASE_ARCHIVE_DIR}/${ARCHIVE_NUMBER}"
     mkdir -p "${ARCHIVE_FOLDER}"
 
-    # **Pindahkan File Sesuai Backup yang Sudah Ada**
     if [ -f seed_phrase.txt ]; then
         while IFS= read -r line; do
             filename="${line// /_}.txt"
@@ -102,20 +80,12 @@ while true; do
         done < seed_phrase.txt
     fi
 
-    if [ -f seed_phrase.txt ]; then
-        mv seed_phrase.txt "${ARCHIVE_FOLDER}/"
-    fi
-    if [ -f pk.txt ]; then
-        mv pk.txt "${ARCHIVE_FOLDER}/"
-    fi
-
-    # **Rotasi Log Jika Terlalu Besar (Mencegah File Membengkak)**
+    mv seed_phrase.txt pk.txt "${ARCHIVE_FOLDER}/" 2>/dev/null || true
     logsize=$(du -k "log.txt" | cut -f1)
     if [ "$logsize" -gt 5000 ]; then
         mv log.txt "log_$(date +%F_%T).txt"
         echo "$(date) - Log dirotasi karena ukuran terlalu besar." > log.txt
     fi
 
-    echo "$(date) - Iterasi selesai. Mengulang dalam 60 detik..." >> log.txt
     sleep 60
 done
