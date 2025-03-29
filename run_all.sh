@@ -6,6 +6,7 @@ BASE_ARCHIVE_DIR="/root/dripster/backup"
 ANZA_VERSION="v2.2.3"
 ANZA_URL="https://github.com/anza-xyz/agave/releases/download/${ANZA_VERSION}/solana-release-x86_64-unknown-linux-gnu.tar.bz2"
 INSTALL_DIR="$HOME/.local/share/solana/install"
+ACTIVE_RELEASE="$INSTALL_DIR/active_release"
 
 get_next_archive_number() {
     local i=1
@@ -36,12 +37,25 @@ fi
 # **Cek & Install Solana CLI (Anza) langsung dari GitHub**
 if ! command -v solana &>/dev/null; then
     echo "$(date) - Solana CLI tidak ditemukan. Mengunduh dari GitHub..." >> log.txt
-    mkdir -p "$INSTALL_DIR/active_release"
+    
+    # **Hapus instalasi lama jika struktur salah**
+    if [ -e "$ACTIVE_RELEASE" ] && [ ! -d "$ACTIVE_RELEASE" ]; then
+        echo "$(date) - Menghapus instalasi lama yang tidak valid..." >> log.txt
+        rm -rf "$INSTALL_DIR"
+    fi
+
+    # **Pastikan direktori tujuan ada**
+    mkdir -p "$ACTIVE_RELEASE"
+
+    # **Unduh & Ekstrak**
     wget -O /tmp/solana-release.tar.bz2 "$ANZA_URL"
-    tar -xjf /tmp/solana-release.tar.bz2 -C "$INSTALL_DIR/active_release" --strip-components=1
-    export PATH="$INSTALL_DIR/active_release/bin:$PATH"
-    echo 'export PATH="$INSTALL_DIR/active_release/bin:$PATH"' >> ~/.bashrc
+    tar -xjf /tmp/solana-release.tar.bz2 -C "$ACTIVE_RELEASE" --strip-components=1
+
+    # **Update PATH**
+    export PATH="$ACTIVE_RELEASE/bin:$PATH"
+    echo 'export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"' >> ~/.bashrc
     source ~/.bashrc
+
     rm /tmp/solana-release.tar.bz2
 fi
 
