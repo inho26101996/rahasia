@@ -36,12 +36,12 @@ if ! command -v npm &>/dev/null; then
     sudo apt-get install -y npm
 fi
 
-# **Cek & Install Anza CLI jika belum ada**
-if ! command -v anza &>/dev/null; then
-    echo "$(date) - Anza CLI tidak ditemukan. Menginstal..." >> log.txt
-    sh -c "$(curl -sSfL https://release.anza.xyz/v2.2.3/install)"
-    export PATH="$HOME/.local/share/anza/install/active_release/bin:$PATH"
-    echo 'export PATH="$HOME/.local/share/anza/install/active_release/bin:$PATH"' >> ~/.bashrc
+# **Cek & Install Solana CLI (Anza)**
+if ! command -v solana &>/dev/null; then
+    echo "$(date) - Solana CLI tidak ditemukan. Menginstal..." >> log.txt
+    sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
+    export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+    echo 'export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"' >> ~/.bashrc
     source ~/.bashrc
 fi
 
