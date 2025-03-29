@@ -1,0 +1,74 @@
+# File Sistem Operasi
+.DS_Store
+Thumbs.db
+
+# Editor dan Lingkungan Pengembangan
+.idea/
+*.swp
+*.swo
+*.bak
+*.log
+*.pyc
+__pycache__/
+node_modules/
+venv/
+.venv/
+.env
+.vscode/
+
+# File Konfigurasi Lokal
+config.ini
+config.json
+*.local
+
+# File Log
+*.log
+
+# Arsip dan Backup
+*.zip
+*.rar
+*.tar.gz
+*.7z
+*.bak
+
+# File Sementara
+*.tmp
+*.temp
+*.cache
+
+# File yang Dihasilkan
+*.o
+*.exe
+*.dll
+*.so
+*.class
+*.jar
+
+# Kunci Pribadi dan Kredensial
+*.pem
+*.key
+*.p12
+*.pkcs12
+*.jks
+*.keystore
+*.pass
+*.password
+
+# File yang Tidak Perlu Dikirim ke Server
+.DS_Store
+Thumbs.db
+*.log
+*.bak
+*.tmp
+*.cache
+*.swp
+*.swo
+.env
+*.pem
+*.key
+*.p12
+*.pkcs12
+*.jks
+*.keystore
+*.pass
+*.password
