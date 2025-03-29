@@ -36,7 +36,21 @@ if ! command -v npm &>/dev/null; then
     sudo apt-get install -y npm
 fi
 
-# **Setup Virtual Environment (venv) hanya di awal)**
+# **Cek & Install Solana CLI jika belum ada**
+if ! command -v solana &>/dev/null; then
+    echo "$(date) - Solana CLI tidak ditemukan. Menginstal..." >> log.txt
+    sh -c "$(curl -sSfL https://release.solana.com/stable/install)"
+    source ~/.profile
+fi
+
+# **Tambahkan Solana ke PATH jika belum ada**
+if ! command -v solana-keygen &>/dev/null; then
+    export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+    echo 'export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"' >> ~/.bashrc
+    source ~/.bashrc
+fi
+
+# **Setup Virtual Environment (venv) hanya di awal**
 if [ ! -d "venv" ]; then
     python3 -m venv venv
 fi
