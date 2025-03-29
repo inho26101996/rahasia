@@ -35,8 +35,6 @@ check_and_install_python() {
 check_and_install_nodejs() {
     if ! command -v npm &> /dev/null; then
         echo "$(date) - npm tidak terinstal. Menginstal npm..." >> log.txt
-        # Sesuaikan perintah instalasi npm dengan sistem operasi Anda
-        # Contoh untuk Debian/Ubuntu:
         sudo apt-get update
         sudo apt-get install -y npm
         echo "$(date) - npm terpasang." >> log.txt
@@ -51,6 +49,19 @@ check_and_install_nodejs
 
 # Berikan akses penuh ke semua skrip .sh di direktori saat ini
 chmod 777 *.sh
+
+# Install dependensi dari package.json jika ada dan belum terinstal
+if [ -f package.json ]; then
+    if [ ! -d node_modules ]; then
+        echo "$(date) - Menginstal dependensi Node.js dari package.json..." >> log.txt
+        npm install
+        echo "$(date) - Dependensi Node.js terpasang." >> log.txt
+    else
+        echo "$(date) - Dependensi Node.js sudah terinstal. Melewati npm install." >> log.txt
+    fi
+else
+    echo "$(date) - package.json tidak ditemukan. Melewati instalasi dependensi Node.js." >> log.txt
+fi
 
 while true; do
     echo "$(date) - Memulai iterasi baru" >> log.txt
@@ -74,19 +85,6 @@ while true; do
     echo "$(date) - Seed phrase dikonversi" >> log.txt
     python pkbase58.py
     echo "$(date) - Kunci privat dikonversi" >> log.txt
-
-    # Periksa dan instal dependensi Node.js dari package.json
-    if [ -f package.json ]; then
-        if [ ! -d node_modules ]; then
-            echo "$(date) - Menginstal dependensi Node.js dari package.json..." >> log.txt
-            npm install
-            echo "$(date) - Dependensi Node.js terpasang." >> log.txt
-        else
-            echo "$(date) - Dependensi Node.js sudah terpasang." >> log.txt
-        fi
-    else
-        echo "$(date) - package.json tidak ditemukan. Melewati instalasi dependensi Node.js." >> log.txt
-    fi
 
     node merge_keys.js
     echo "$(date) - Kunci privat digabungkan" >> log.txt
