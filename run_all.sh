@@ -2,7 +2,7 @@
 set -e
 set -o pipefail
 
-BASE_ARCHIVE_DIR="/root/dripster/backup"
+BASE_ARCHIVE_DIR="$HOME/dripster/backup"
 
 get_next_archive_number() {
     local i=1
