@@ -29,6 +29,16 @@ else
     echo "$(date) - Python3 dan pip sudah terinstal." >> log.txt
 fi
 
+# Periksa dan instal python3-venv jika belum ada
+if ! dpkg -s python3-venv &> /dev/null; then
+    echo "$(date) - python3-venv belum terinstal. Memulai instalasi..." >> log.txt
+    sudo apt update
+    sudo apt install -y python3-venv
+    echo "$(date) - python3-venv berhasil terinstal." >> log.txt
+else
+    echo "$(date) - python3-venv sudah terinstal." >> log.txt
+fi
+
 # Periksa dan instal dependensi Node.js jika belum ada
 if ! command -v npm &> /dev/null; then
     echo "$(date) - npm belum terinstal. Memulai instalasi..." >> log.txt
@@ -42,7 +52,7 @@ fi
 # Instalasi Solana CLI menggunakan skrip resmi
 if ! command -v solana &> /dev/null; then
     echo "$(date) - Solana CLI belum terinstal. Memulai instalasi menggunakan skrip resmi..." >> log.txt
-    sudo apt update # Pastikan apt terbaru sebelum menginstal dependensi skrip
+    sudo apt update
     sudo apt install -y curl
     sh -c "$(curl -sSfL https://install.solana.com)"
     echo "$(date) - Solana CLI berhasil terinstal. Harap tutup dan buka kembali terminal." >> log.txt
