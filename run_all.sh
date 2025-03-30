@@ -69,18 +69,29 @@ if ! $NODEJS_INSTALLED; then
     fi
 fi
 
-# Instalasi Solana CLI menggunakan perintah resmi terbaru dari website dengan versi spesifik
+# Instalasi Solana CLI menggunakan unduhan langsung prebuilt binary
 if ! $SOLANA_INSTALLED; then
     if ! command -v solana &> /dev/null; then
-        echo "$(date) - Solana CLI belum terinstal. Memulai instalasi menggunakan skrip resmi versi v2.1.16..." >> log.txt
+        echo "$(date) - Solana CLI belum terinstal. Memulai instalasi menggunakan prebuilt binary..." >> log.txt
+        SOLANA_VERSION="v2.1.16"
+        SOLANA_ARCH="aarch64-unknown-linux-gnu"
+        SOLANA_URL="https://github.com/anza-xyz/agave/releases/download/${SOLANA_VERSION}/solana-release-${SOLANA_ARCH}.tar.bz2"
+        SOLANA_DIR="/opt/solana-${SOLANA_VERSION}"
+
         sudo apt update
-        sudo apt install -y curl
-        if sh -c "$(curl -sSfL https://release.anza.xyz/v2.1.16/install)"; then
-            echo "$(date) - Solana CLI berhasil terinstal." >> log.txt
-            echo "$(date) - Pastikan Anda telah memperbarui PATH environment variable Anda sesuai dengan petunjuk installer Solana." >> log.txt
+        sudo apt install -y wget tar
+
+        if wget -q "${SOLANA_URL}" -O /tmp/solana.tar.bz2; then
+            sudo mkdir -p "${SOLANA_DIR}"
+            sudo tar -xjvf /tmp/solana.tar.bz2 -C "${SOLANA_DIR}" --strip-components=1
+            rm /tmp/solana.tar.bz2
+            export PATH="$PATH:${SOLANA_DIR}/bin"
+            echo "export PATH=\"\$PATH:${SOLANA_DIR}/bin\"" >> ~/.bashrc
+            source ~/.bashrc  # Tambahkan baris ini untuk memperbarui PATH saat ini
+            echo "$(date) - Solana CLI berhasil diinstal ke ${SOLANA_DIR}/bin dan PATH sudah diperbarui." >> log.txt
             SOLANA_INSTALLED=true
         else
-            echo "$(date) - Instalasi Solana CLI gagal." >> log.txt
+            echo "$(date) - Gagal mengunduh prebuilt binary Solana CLI dari ${SOLANA_URL}." >> log.txt
         fi
     else
         echo "$(date) - Solana CLI sudah terdeteksi." >> log.txt
