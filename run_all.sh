@@ -49,12 +49,12 @@ else
     echo "$(date) - npm sudah terinstal." >> log.txt
 fi
 
-# Instalasi Solana CLI menggunakan skrip resmi
+# Instalasi Solana CLI menggunakan skrip alternatif
 if ! command -v solana &> /dev/null; then
-    echo "$(date) - Solana CLI belum terinstal. Memulai instalasi menggunakan skrip resmi..." >> log.txt
+    echo "$(date) - Solana CLI belum terinstal. Memulai instalasi menggunakan skrip alternatif..." >> log.txt
     sudo apt update
     sudo apt install -y curl
-    sh -c "$(curl -sSfL https://install.solana.com)"
+    curl --proto '=https' --tlsv1.2 -sSfL https://solana-install.solana.workers.dev | bash
     echo "$(date) - Solana CLI berhasil terinstal. Harap tutup dan buka kembali terminal." >> log.txt
 else
     echo "$(date) - Solana CLI sudah terinstal." >> log.txt
@@ -79,6 +79,10 @@ while true; do
     # Periksa keberadaan venv sebelum membuatnya
     if [ ! -d "venv" ]; then
         python3 -m venv venv
+        if [ "$?" -ne "0" ]; then
+            echo "$(date) - Gagal membuat virtual environment. Script berhenti." >> log.txt
+            exit 1
+        fi
         echo "$(date) - Virtual environment dibuat." >> log.txt
     else
         echo "$(date) - Virtual environment sudah ada. Melewati pembuatan." >> log.txt
