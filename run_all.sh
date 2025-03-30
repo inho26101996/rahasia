@@ -39,15 +39,13 @@ else
     echo "$(date) - npm sudah terinstal." >> log.txt
 fi
 
-# Instalasi Solana CLI
+# Instalasi Solana CLI menggunakan skrip resmi
 if ! command -v solana &> /dev/null; then
-    echo "$(date) - Solana CLI belum terinstal. Memulai instalasi..." >> log.txt
-    sudo apt update
-    sudo apt install -y wget
-    wget https://release.solana.com/solana-stable/solana-stable-amd64.deb
-    sudo apt install ./solana-stable-amd64.deb
-    rm solana-stable-amd64.deb # Bersihkan file .deb setelah instalasi
-    echo "$(date) - Solana CLI berhasil terinstal." >> log.txt
+    echo "$(date) - Solana CLI belum terinstal. Memulai instalasi menggunakan skrip resmi..." >> log.txt
+    sudo apt update # Pastikan apt terbaru sebelum menginstal dependensi skrip
+    sudo apt install -y curl
+    sh -c "$(curl -sSfL https://install.solana.com)"
+    echo "$(date) - Solana CLI berhasil terinstal. Harap tutup dan buka kembali terminal." >> log.txt
 else
     echo "$(date) - Solana CLI sudah terinstal." >> log.txt
 fi
