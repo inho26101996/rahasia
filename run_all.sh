@@ -19,14 +19,28 @@ if [ ! -d "${BASE_ARCHIVE_DIR}" ]; then
     mkdir -p "${BASE_ARCHIVE_DIR}"
 fi
 
+# Flags untuk menandakan status instalasi
+PYTHON_INSTALLED=false
+NODEJS_INSTALLED=false
+SOLANA_INSTALLED=false
+EXPECT_INSTALLED=false
+
 # Periksa dan instal dependensi Python jika belum ada
-if ! command -v python3 &> /dev/null || ! command -v pip3 &> /dev/null; then
-    echo "$(date) - Python3 atau pip belum terinstal. Memulai instalasi..." >> log.txt
-    sudo apt update
-    sudo apt install -y python3 python3-pip
-    echo "$(date) - Python3 dan pip berhasil terinstal." >> log.txt
-else
-    echo "$(date) - Python3 dan pip sudah terinstal." >> log.txt
+if ! $PYTHON_INSTALLED; then
+    if ! command -v python3 &> /dev/null || ! command -v pip3 &> /dev/null; then
+        echo "$(date) - Python3 atau pip belum terinstal. Memulai instalasi..." >> log.txt
+        sudo apt update
+        sudo apt install -y python3 python3-pip
+        if [ "$?" -eq "0" ]; then
+            echo "$(date) - Python3 dan pip berhasil terinstal." >> log.txt
+            PYTHON_INSTALLED=true
+        else
+            echo "$(date) - Instalasi Python3 atau pip gagal." >> log.txt
+        fi
+    else
+        echo "$(date) - Python3 dan pip sudah terdeteksi." >> log.txt
+        PYTHON_INSTALLED=true
+    fi
 fi
 
 # Periksa dan instal python3-venv jika belum ada
@@ -35,39 +49,60 @@ if ! dpkg -s python3-venv &> /dev/null; then
     sudo apt update
     sudo apt install -y python3-venv
     echo "$(date) - python3-venv berhasil terinstal." >> log.txt
-else
-    echo "$(date) - python3-venv sudah terinstal." >> log.txt
 fi
 
 # Periksa dan instal dependensi Node.js jika belum ada
-if ! command -v npm &> /dev/null; then
-    echo "$(date) - npm belum terinstal. Memulai instalasi..." >> log.txt
-    sudo apt update
-    sudo apt install -y npm
-    echo "$(date) - npm berhasil terinstal." >> log.txt
-else
-    echo "$(date) - npm sudah terinstal." >> log.txt
+if ! $NODEJS_INSTALLED; then
+    if ! command -v npm &> /dev/null; then
+        echo "$(date) - npm belum terinstal. Memulai instalasi..." >> log.txt
+        sudo apt update
+        sudo apt install -y npm
+        if [ "$?" -eq "0" ]; then
+            echo "$(date) - npm berhasil terinstal." >> log.txt
+            NODEJS_INSTALLED=true
+        else
+            echo "$(date) - Instalasi npm gagal." >> log.txt
+        fi
+    else
+        echo "$(date) - npm sudah terdeteksi." >> log.txt
+        NODEJS_INSTALLED=true
+    fi
 fi
 
-# Instalasi Solana CLI menggunakan skrip alternatif
-if ! command -v solana &> /dev/null; then
-    echo "$(date) - Solana CLI belum terinstal. Memulai instalasi menggunakan skrip alternatif..." >> log.txt
-    sudo apt update
-    sudo apt install -y curl
-    curl --proto '=https' --tlsv1.2 -sSfL https://solana-install.solana.workers.dev | bash
-    echo "$(date) - Solana CLI berhasil terinstal. Harap tutup dan buka kembali terminal." >> log.txt
-else
-    echo "$(date) - Solana CLI sudah terinstal." >> log.txt
+# Instalasi Solana CLI menggunakan perintah resmi terbaru
+if ! $SOLANA_INSTALLED; then
+    if ! command -v solana &> /dev/null; then
+        echo "$(date) - Solana CLI belum terinstal. Memulai instalasi menggunakan skrip resmi terbaru..." >> log.txt
+        sudo apt update
+        sudo apt install -y curl
+        if sh -c "$(curl -sSfL https://release.solana.com/stable/install)"; then
+            echo "$(date) - Solana CLI berhasil terinstal." >> log.txt
+            SOLANA_INSTALLED=true
+        else
+            echo "$(date) - Instalasi Solana CLI gagal." >> log.txt
+        fi
+    else
+        echo "$(date) - Solana CLI sudah terdeteksi." >> log.txt
+        SOLANA_INSTALLED=true
+    fi
 fi
 
 # Periksa dan instal expect jika belum ada
-if ! command -v expect &> /dev/null; then
-    echo "$(date) - expect belum terinstal. Memulai instalasi..." >> log.txt
-    sudo apt update
-    sudo apt install -y expect
-    echo "$(date) - expect berhasil terinstal." >> log.txt
-else
-    echo "$(date) - expect sudah terinstal." >> log.txt
+if ! $EXPECT_INSTALLED; then
+    if ! command -v expect &> /dev/null; then
+        echo "$(date) - expect belum terinstal. Memulai instalasi..." >> log.txt
+        sudo apt update
+        sudo apt install -y expect
+        if [ "$?" -eq "0" ]; then
+            echo "$(date) - expect berhasil terinstal." >> log.txt
+            EXPECT_INSTALLED=true
+        else
+            echo "$(date) - Instalasi expect gagal." >> log.txt
+        fi
+    else
+        echo "$(date) - expect sudah terdeteksi." >> log.txt
+        EXPECT_INSTALLED=true
+    fi
 fi
 
 # Berikan akses penuh ke semua skrip .sh di direktori saat ini
