@@ -69,6 +69,16 @@ if ! $NODEJS_INSTALLED; then
     fi
 fi
 
+# Coba unduh langsung file Solana binary untuk diagnosis
+echo "$(date) - Mencoba mengunduh langsung file Solana binary untuk diagnosis..." >> log.txt
+SOLANA_VERSION="v2.1.16"
+SOLANA_ARCH="aarch64-unknown-linux-gnu"
+SOLANA_URL="https://github.com/anza-xyz/agave/releases/download/${SOLANA_VERSION}/solana-release-${SOLANA_ARCH}.tar.bz2"
+wget -q "${SOLANA_URL}" -O /tmp/solana_test_download.tar.bz2
+DOWNLOAD_STATUS="$?"
+echo "$(date) - Status pengunduhan langsung: ${DOWNLOAD_STATUS}" >> log.txt
+rm -f /tmp/solana_test_download.tar.bz2
+
 # Instalasi Solana CLI menggunakan unduhan langsung prebuilt binary
 if ! $SOLANA_INSTALLED; then
     if ! command -v solana &> /dev/null; then
