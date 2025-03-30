@@ -39,23 +39,17 @@ else
     echo "$(date) - npm sudah terinstal." >> log.txt
 fi
 
-# Periksa dan instal solana-keygen jika belum ada
-if ! command -v solana-keygen &> /dev/null; then
-    echo "$(date) - solana-keygen belum terinstal. Memulai instalasi..." >> log.txt
-    sudo apt update
-    sudo apt install -y solana
-    echo "$(date) - solana-keygen berhasil terinstal." >> log.txt
-else
-    echo "$(date) - solana-keygen sudah terinstal." >> log.txt
-fi
-
-# Periksa dan instal solana cli jika belum ada
+# Instalasi Solana CLI
 if ! command -v solana &> /dev/null; then
-    echo "$(date) - solana cli belum terinstal. Memastikan instalasi..." >> log.txt
-    # Biasanya terinstal bersama dengan solana-keygen, jadi hanya memberikan pesan
-    echo "$(date) - Solana cli seharusnya sudah terinstal." >> log.txt
+    echo "$(date) - Solana CLI belum terinstal. Memulai instalasi..." >> log.txt
+    sudo apt update
+    sudo apt install -y wget
+    wget https://release.solana.com/solana-stable/solana-stable-amd64.deb
+    sudo apt install ./solana-stable-amd64.deb
+    rm solana-stable-amd64.deb # Bersihkan file .deb setelah instalasi
+    echo "$(date) - Solana CLI berhasil terinstal." >> log.txt
 else
-    echo "$(date) - solana cli sudah terinstal." >> log.txt
+    echo "$(date) - Solana CLI sudah terinstal." >> log.txt
 fi
 
 # Periksa dan instal expect jika belum ada
