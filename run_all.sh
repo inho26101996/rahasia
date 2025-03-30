@@ -69,14 +69,15 @@ if ! $NODEJS_INSTALLED; then
     fi
 fi
 
-# Instalasi Solana CLI menggunakan perintah resmi terbaru
+# Instalasi Solana CLI menggunakan perintah resmi terbaru dari website
 if ! $SOLANA_INSTALLED; then
     if ! command -v solana &> /dev/null; then
         echo "$(date) - Solana CLI belum terinstal. Memulai instalasi menggunakan skrip resmi terbaru..." >> log.txt
         sudo apt update
         sudo apt install -y curl
-        if sh -c "$(curl -sSfL https://release.solana.com/stable/install)"; then
+        if sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"; then
             echo "$(date) - Solana CLI berhasil terinstal." >> log.txt
+            echo "$(date) - Pastikan Anda telah memperbarui PATH environment variable Anda sesuai dengan petunjuk installer Solana." >> log.txt
             SOLANA_INSTALLED=true
         else
             echo "$(date) - Instalasi Solana CLI gagal." >> log.txt
