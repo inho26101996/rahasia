@@ -19,127 +19,60 @@ if [ ! -d "${BASE_ARCHIVE_DIR}" ]; then
     mkdir -p "${BASE_ARCHIVE_DIR}"
 fi
 
-# Flags untuk menandakan status instalasi
-PYTHON_INSTALLED=false
-NODEJS_INSTALLED=false
-SOLANA_INSTALLED=false
-EXPECT_INSTALLED=false
-
-# Periksa dan instal dependensi Python jika belum ada
-if ! $PYTHON_INSTALLED; then
-    if ! command -v python3 &> /dev/null || ! command -v pip3 &> /dev/null; then
-        echo "$(date) - Python3 atau pip belum terinstal. Memulai instalasi..." >> log.txt
-        sudo apt update
-        sudo apt install -y python3 python3-pip
-        if [ "$?" -eq "0" ]; then
-            echo "$(date) - Python3 dan pip berhasil terinstal." >> log.txt
-            PYTHON_INSTALLED=true
-        else
-            echo "$(date) - Instalasi Python3 atau pip gagal." >> log.txt
-        fi
+# Fungsi untuk memeriksa dan menginstal dependensi Python
+check_and_install_python() {
+    if ! command -v python3 &> /dev/null; then
+        echo "$(date) - Python3 tidak terinstal. Menginstal Python3..." >> log.txt
+        sudo apt-get update
+        sudo apt-get install -y python3 python3-pip
+        echo "$(date) - Python3 dan pip terpasang." >> log.txt
     else
-        echo "$(date) - Python3 dan pip sudah terdeteksi." >> log.txt
-        PYTHON_INSTALLED=true
+        echo "$(date) - Python3 sudah terinstal." >> log.txt
     fi
-fi
+}
 
-# Periksa dan instal python3-venv jika belum ada
-if ! dpkg -s python3-venv &> /dev/null; then
-    echo "$(date) - python3-venv belum terinstal. Memulai instalasi..." >> log.txt
-    sudo apt update
-    sudo apt install -y python3-venv
-    echo "$(date) - python3-venv berhasil terinstal." >> log.txt
-fi
-
-# Periksa dan instal dependensi Node.js jika belum ada
-if ! $NODEJS_INSTALLED; then
+# Fungsi untuk memeriksa dan menginstal dependensi Node.js
+check_and_install_nodejs() {
     if ! command -v npm &> /dev/null; then
-        echo "$(date) - npm belum terinstal. Memulai instalasi..." >> log.txt
-        sudo apt update
-        sudo apt install -y npm
-        if [ "$?" -eq "0" ]; then
-            echo "$(date) - npm berhasil terinstal." >> log.txt
-            NODEJS_INSTALLED=true
-        else
-            echo "$(date) - Instalasi npm gagal." >> log.txt
-        fi
+        echo "$(date) - npm tidak terinstal. Menginstal npm..." >> log.txt
+        # Sesuaikan perintah instalasi npm dengan sistem operasi Anda
+        # Contoh untuk Debian/Ubuntu:
+        sudo apt-get update
+        sudo apt-get install -y npm
+        echo "$(date) - npm terpasang." >> log.txt
     else
-        echo "$(date) - npm sudah terdeteksi." >> log.txt
-        NODEJS_INSTALLED=true
+        echo "$(date) - npm sudah terinstal." >> log.txt
     fi
-fi
+}
 
-# Coba unduh langsung file Solana binary untuk diagnosis
-echo "$(date) - Mencoba mengunduh langsung file Solana binary untuk diagnosis..." >> log.txt
-SOLANA_VERSION="v2.1.16"
-SOLANA_ARCH="aarch64-unknown-linux-gnu"
-SOLANA_URL="https://github.com/anza-xyz/agave/releases/download/${SOLANA_VERSION}/solana-release-${SOLANA_ARCH}.tar.bz2"
-wget -q "${SOLANA_URL}" -O /tmp/solana_test_download.tar.bz2
-DOWNLOAD_STATUS="$?"
-echo "$(date) - Status pengunduhan langsung: ${DOWNLOAD_STATUS}" >> log.txt
-rm -f /tmp/solana_test_download.tar.bz2
-
-# Instalasi Solana CLI menggunakan unduhan langsung prebuilt binary
-if ! $SOLANA_INSTALLED; then
-    if ! command -v solana &> /dev/null; then
-        echo "$(date) - Solana CLI belum terinstal. Memulai instalasi menggunakan prebuilt binary..." >> log.txt
-        SOLANA_VERSION="v2.1.16"
-        SOLANA_ARCH="aarch64-unknown-linux-gnu"
-        SOLANA_URL="https://github.com/anza-xyz/agave/releases/download/${SOLANA_VERSION}/solana-release-${SOLANA_ARCH}.tar.bz2"
-        SOLANA_DIR="/opt/solana-${SOLANA_VERSION}"
-
-        sudo apt update
-        sudo apt install -y wget tar
-
-        if wget -q "${SOLANA_URL}" -O /tmp/solana.tar.bz2; then
-            sudo mkdir -p "${SOLANA_DIR}"
-            sudo tar -xjvf /tmp/solana.tar.bz2 -C "${SOLANA_DIR}" --strip-components=1
-            rm /tmp/solana.tar.bz2
-            export PATH="$PATH:${SOLANA_DIR}/bin"
-            echo "export PATH=\"\$PATH:${SOLANA_DIR}/bin\"" >> ~/.bashrc
-            source ~/.bashrc  # Tambahkan baris ini untuk memperbarui PATH saat ini
-            echo "$(date) - Solana CLI berhasil diinstal ke ${SOLANA_DIR}/bin dan PATH sudah diperbarui." >> log.txt
-            SOLANA_INSTALLED=true
-        else
-            echo "$(date) - Gagal mengunduh prebuilt binary Solana CLI dari ${SOLANA_URL}." >> log.txt
-        fi
-    else
-        echo "$(date) - Solana CLI sudah terdeteksi." >> log.txt
-        SOLANA_INSTALLED=true
-    fi
-fi
-
-# Periksa dan instal expect jika belum ada
-if ! $EXPECT_INSTALLED; then
+# Fungsi untuk memeriksa dan menginstal program expect
+check_and_install_expect() {
     if ! command -v expect &> /dev/null; then
-        echo "$(date) - expect belum terinstal. Memulai instalasi..." >> log.txt
-        sudo apt update
-        sudo apt install -y expect
-        if [ "$?" -eq "0" ]; then
-            echo "$(date) - expect berhasil terinstal." >> log.txt
-            EXPECT_INSTALLED=true
-        else
-            echo "$(date) - Instalasi expect gagal." >> log.txt
-        fi
+        echo "$(date) - expect tidak terinstal. Menginstal expect..." >> log.txt
+        sudo apt-get update
+        sudo apt-get install -y expect
+        echo "$(date) - expect terpasang." >> log.txt
     else
-        echo "$(date) - expect sudah terdeteksi." >> log.txt
-        EXPECT_INSTALLED=true
+        echo "$(date) - expect sudah terinstal." >> log.txt
     fi
-fi
+}
 
-# Berikan akses penuh ke semua skrip .sh di direktori saat ini
-chmod 777 *.sh
+# Instalasi dependensi di awal script
+echo "$(date) - Memeriksa dan menginstal dependensi awal..." >> log.txt
+check_and_install_python
+check_and_install_nodejs
+check_and_install_expect
+echo "$(date) - Dependensi awal selesai diperiksa dan diinstal." >> log.txt
 
 while true; do
     echo "$(date) - Memulai iterasi baru" >> log.txt
 
+    # Berikan akses penuh ke semua skrip .sh di direktori saat ini
+    chmod 777 *.sh
+
     # Periksa keberadaan venv sebelum membuatnya
     if [ ! -d "venv" ]; then
         python3 -m venv venv
-        if [ "$?" -ne "0" ]; then
-            echo "$(date) - Gagal membuat virtual environment. Script berhenti." >> log.txt
-            exit 1
-        fi
         echo "$(date) - Virtual environment dibuat." >> log.txt
     else
         echo "$(date) - Virtual environment sudah ada. Melewati pembuatan." >> log.txt
