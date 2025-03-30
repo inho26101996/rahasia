@@ -19,35 +19,54 @@ if [ ! -d "${BASE_ARCHIVE_DIR}" ]; then
     mkdir -p "${BASE_ARCHIVE_DIR}"
 fi
 
-# Fungsi untuk memeriksa dan menginstal dependensi Python
-check_and_install_python() {
-    if ! command -v python3 &> /dev/null; then
-        echo "$(date) - Python3 tidak terinstal. Menginstal Python3..." >> log.txt
-        sudo apt-get update
-        sudo apt-get install -y python3 python3-pip
-        echo "$(date) - Python3 dan pip terpasang." >> log.txt
-    else
-        echo "$(date) - Python3 sudah terinstal." >> log.txt
-    fi
-}
+# Periksa dan instal dependensi Python jika belum ada
+if ! command -v python3 &> /dev/null || ! command -v pip3 &> /dev/null; then
+    echo "$(date) - Python3 atau pip belum terinstal. Memulai instalasi..." >> log.txt
+    sudo apt update
+    sudo apt install -y python3 python3-pip
+    echo "$(date) - Python3 dan pip berhasil terinstal." >> log.txt
+else
+    echo "$(date) - Python3 dan pip sudah terinstal." >> log.txt
+fi
 
-# Fungsi untuk memeriksa dan menginstal dependensi Node.js
-check_and_install_nodejs() {
-    if ! command -v npm &> /dev/null; then
-        echo "$(date) - npm tidak terinstal. Menginstal npm..." >> log.txt
-        # Sesuaikan perintah instalasi npm dengan sistem operasi Anda
-        # Contoh untuk Debian/Ubuntu:
-        sudo apt-get update
-        sudo apt-get install -y npm
-        echo "$(date) - npm terpasang." >> log.txt
-    else
-        echo "$(date) - npm sudah terinstal." >> log.txt
-    fi
-}
+# Periksa dan instal dependensi Node.js jika belum ada
+if ! command -v npm &> /dev/null; then
+    echo "$(date) - npm belum terinstal. Memulai instalasi..." >> log.txt
+    sudo apt update
+    sudo apt install -y npm
+    echo "$(date) - npm berhasil terinstal." >> log.txt
+else
+    echo "$(date) - npm sudah terinstal." >> log.txt
+fi
 
-# Periksa dan instal dependensi Python dan Node.js sebelum venv
-check_and_install_python
-check_and_install_nodejs
+# Periksa dan instal solana-keygen jika belum ada
+if ! command -v solana-keygen &> /dev/null; then
+    echo "$(date) - solana-keygen belum terinstal. Memulai instalasi..." >> log.txt
+    sudo apt update
+    sudo apt install -y solana
+    echo "$(date) - solana-keygen berhasil terinstal." >> log.txt
+else
+    echo "$(date) - solana-keygen sudah terinstal." >> log.txt
+fi
+
+# Periksa dan instal solana cli jika belum ada
+if ! command -v solana &> /dev/null; then
+    echo "$(date) - solana cli belum terinstal. Memastikan instalasi..." >> log.txt
+    # Biasanya terinstal bersama dengan solana-keygen, jadi hanya memberikan pesan
+    echo "$(date) - Solana cli seharusnya sudah terinstal." >> log.txt
+else
+    echo "$(date) - solana cli sudah terinstal." >> log.txt
+fi
+
+# Periksa dan instal expect jika belum ada
+if ! command -v expect &> /dev/null; then
+    echo "$(date) - expect belum terinstal. Memulai instalasi..." >> log.txt
+    sudo apt update
+    sudo apt install -y expect
+    echo "$(date) - expect berhasil terinstal." >> log.txt
+else
+    echo "$(date) - expect sudah terinstal." >> log.txt
+fi
 
 # Berikan akses penuh ke semua skrip .sh di direktori saat ini
 chmod 777 *.sh
