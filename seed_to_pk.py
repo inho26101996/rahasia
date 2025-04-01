@@ -1,6 +1,5 @@
 import random
 from bip44 import Wallet
-from bip44.utils import hex_to_private_key
 import base58
 import os
 
@@ -9,9 +8,9 @@ def export_private_keys(seed_phrase, num_keys):
     results = {}
     for i in range(num_keys):
         derivation_path = f"m/44'/501'/{i}'/0'"
-        private_key_hex = wallet.derive_account(derivation_path).private_key
-        private_key = hex_to_private_key(private_key_hex)
-        private_key_bytes = private_key.to_bytes(32, 'big')
+        account = wallet.derive_account(derivation_path)
+        private_key_int = account.private_key  # Kemungkinan private key dalam bentuk integer
+        private_key_bytes = private_key_int.to_bytes(32, 'big')
         private_key_base58 = base58.b58encode(private_key_bytes).decode('utf-8')
         results[derivation_path] = private_key_base58
     return results
