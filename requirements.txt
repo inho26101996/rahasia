@@ -1,6 +1,13 @@
+asn1crypto==1.5.1
 base58==2.1.1
+bip32==4.0
+bip44==0.1.5
+cffi==1.17.1
+coincurve==20.0.0
 jsonalias==0.1.1
 mnemonic==0.21
 ptyprocess==0.7.0
+pycparser==2.22
+pycryptodome==3.22.0
 solders==0.26.0
 typing_extensions==4.13.0
