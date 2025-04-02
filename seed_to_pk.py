@@ -1,47 +1,33 @@
-import random
-from bip_utils import Bip39SeedGenerator
-from solders.keypair import Keypair
+from bip_utils import Bip39SeedGenerator, Bip44, Bip44Coins, Bip44Changes
+from solana.keypair import Keypair
 import base58
-import hashlib
+import random
 
-def generate_solana_keypair_from_seed(seed_phrase: str, index: int) -> str:
-    """Menghasilkan private key Solana dari seed phrase dengan index untuk variasi."""
-    try:
-        seed_bytes_full = Bip39SeedGenerator(seed_phrase).Generate()
-        # Tambahkan index ke seed untuk membuatnya unik
-        salted_seed = seed_bytes_full + index.to_bytes(4, byteorder='big')
-        # Hash seed yang sudah ditambahkan salt untuk mendapatkan 32 byte
-        solana_seed_bytes = hashlib.sha256(salted_seed).digest()[:32]
-        keypair = Keypair.from_seed(list(solana_seed_bytes))
-        private_key_base58 = base58.b58encode(keypair.secret()).decode('utf-8')
-        return private_key_base58
-    except Exception as e:
-        print(f"Terjadi kesalahan: {e}")
-        return None
+# Fungsi untuk mengexport private key dari seed phrase dengan indeks alamat tertentu
+def export_private_key(seed_phrase: str, index: int) -> str:
+    seed_bytes = Bip39SeedGenerator(seed_phrase).Generate()
+    bip44_mst_ctx = Bip44.FromSeed(seed_bytes, Bip44Coins.SOLANA)
+    bip44_acc_ctx = bip44_mst_ctx.Purpose().Coin().Account(0).Change(Bip44Changes.CHAIN_EXT)
+    bip44_addr_ctx = bip44_acc_ctx.AddressIndex(index)
+    private_key_bytes = bip44_addr_ctx.PrivateKey().Raw().ToBytes()
+    keypair = Keypair.from_seed(private_key_bytes)
+    private_key_base58 = base58.b58encode(keypair.secret_key).decode()
+    return private_key_base58
 
-def sanitize_filename(filename):
-    return filename.replace(" ", "_") + ".txt"
+# Baca seed phrases dari file seeds.txt
+with open("seeds.txt", "r") as file:
+    seed_phrases = file.readlines()
 
-def main():
-    try:
-        with open("seed_phrase.txt", "r") as f:
-            seed_phrases = [line.strip() for line in f.readlines()]
-    except FileNotFoundError:
-        print("File seed_phrase.txt tidak ditemukan.")
-        return
+# Generate private keys untuk setiap seed phrase dan simpan hasilnya dalam satu file .txt
+for seed_phrase in seed_phrases:
+    seed_phrase = seed_phrase.strip()
+    if seed_phrase:
+        num_keys = random.randint(80, 100)
+        filename = f"{seed_phrase.replace(' ', '_')}.txt"
+        with open(filename, "w") as output_file:
+            for i in range(num_keys):
+                private_key = export_private_key(seed_phrase, i)
+                output_file.write(f"{private_key}\n")
+        print(f"File {filename} created with {num_keys} Private Keys")
 
-    for seed_phrase in seed_phrases:
-        num_keys = random.randint(80, 100)  # Acak antara 80 sampai 100 private key
-        filename = sanitize_filename(seed_phrase)
-        try:
-            with open(filename, "w") as outfile:
-                for i in range(num_keys):
-                    private_key = generate_solana_keypair_from_seed(seed_phrase, i)
-                    if private_key:
-                        outfile.write(f"{private_key}\n")
-            print(f"Private key untuk {filename} ({num_keys} key) telah diekspor.")
-        except Exception as e:
-            print(f"Gagal mengekspor private key untuk {filename}: {e}")
-
-if __name__ == "__main__":
-    main()
+print("All seed phrases processed.")
