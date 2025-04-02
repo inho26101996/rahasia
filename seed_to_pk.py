@@ -7,12 +7,15 @@ def export_private_keys(seed_phrase, num_keys):
     wallet = Wallet(seed_phrase)
     results = {}
     for i in range(num_keys):
-        derivation_path = f"m/44'/501'/{i}'/0'"
-        account = wallet.derive_account(derivation_path)
-        private_key_int = account.private_key  # Kemungkinan private key dalam bentuk integer
-        private_key_bytes = private_key_int.to_bytes(32, 'big')
-        private_key_base58 = base58.b58encode(private_key_bytes).decode('utf-8')
-        results[derivation_path] = private_key_base58
+        derivation_path = f"44'/501'/{i}'/0'"
+        try:
+            account = wallet.derive_account(derivation_path)
+            private_key_int = account.private_key
+            private_key_bytes = private_key_int.to_bytes(32, 'big')
+            private_key_base58 = base58.b58encode(private_key_bytes).decode('utf-8')
+            results[derivation_path] = private_key_base58
+        except Exception as e:
+            print(f"Gagal menurunkan kunci untuk jalur {derivation_path}: {e}")
     return results
 
 def sanitize_filename(filename):
@@ -33,7 +36,7 @@ def main():
         try:
             with open(filename, "w") as outfile:
                 for path, pk in results.items():
-                    outfile.write(f"{path}: {pk}\n")
+                    outfile.write(f"m/{path}: {pk}\n") # Tambahkan kembali 'm/' untuk output
             print(f"Kunci pribadi untuk {filename} ({num_keys} kunci) telah diekspor.")
         except Exception as e:
             print(f"Gagal mengekspor kunci pribadi untuk {filename}: {e}")
