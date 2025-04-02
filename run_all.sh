@@ -21,10 +21,10 @@ mkdir -p "${BASE_ARCHIVE_DIR}"
 # **Atur chmod 777 di awal untuk semua script**
 chmod 777 *.sh *.py
 
-# **Instalasi Semua Dependensi di Awal**
-echo "$(date) - Memulai instalasi semua dependensi..." >> log.txt
+# **Instalasi Semua Dependensi Sistem di Awal**
+echo "$(date) - Memulai instalasi dependensi sistem..." >> log.txt
 sudo apt-get update && sudo apt-get install -y python3 python3-pip python3-venv npm expect
-echo "$(date) - Instalasi dependensi selesai." >> log.txt
+echo "$(date) - Instalasi dependensi sistem selesai." >> log.txt
 
 # **Setup Virtual Environment (venv)**
 if [ ! -d "venv" ]; then
@@ -35,12 +35,12 @@ fi
 # **Aktifkan Virtual Environment**
 source venv/bin/activate
 
-# **Pastikan pip install hanya dijalankan sekali**
+# **Instalasi Dependensi Python Setelah Aktivasi venv**
 if [ ! -f ".venv_installed" ]; then
-    echo "$(date) - Menginstal dependensi Python..." >> log.txt
+    echo "$(date) - Menginstal dependensi Python di dalam venv..." >> log.txt
     pip install -r requirements.txt
     touch .venv_installed
-    echo "$(date) - Dependensi Python diinstal." >> log.txt
+    echo "$(date) - Dependensi Python di dalam venv diinstal." >> log.txt
 fi
 
 # **Jalankan npm install sekali di awal jika perlu**
