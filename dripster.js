@@ -66,7 +66,8 @@ async function send(address) {
   const read2 = fs.readFileSync(`pk.txt`, 'UTF-8');
   const list2 = read2.split(/\r?\n/);
   for (var i = 0; i < list2.length; i++) {
-    var secretKeyBase58 = list2[i].split('|')[0];
+    // PERUBAHAN PENTING DI SINI:
+    var secretKeyBase58 = list2[i];
     const secretKeyBytes = bs58.decode(secretKeyBase58);
     const keypair = Keypair.fromSecretKey(secretKeyBytes);
     console.log();
