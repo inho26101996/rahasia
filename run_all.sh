@@ -160,17 +160,20 @@
 	    echo "$(date) - Menyimpan file ke ${ARCHIVE_FOLDER}" >> "$LOG_FILE"
 
 	    # **Pindahkan File Sesuai Backup yang Sudah Ada**
-	    if [ -f seed_phrase.txt ]
+	    if [ -f seeds.txt ]
 	    then
 		while IFS= read -r line; do
 		    filename="${line// /_}.txt"
 		    if [ -f "$filename" ]; then
 		        mv "$filename" "${ARCHIVE_FOLDER}/"
 		    fi
-		done < seed_phrase.txt
-		mv seed_phrase.txt "${ARCHIVE_FOLDER}/" 2>/dev/null # Baru pindahkan seed.txt
+		done < seeds.txt
+		mv seeds.txt "${ARCHIVE_FOLDER}/" 2>/dev/null # Baru pindahkan seeds.txt
 	    fi
-	    mv pk.txt "${ARCHIVE_FOLDER}/" 2>/dev/null
+	    if [ -f pk.txt ]
+	    then
+		mv pk.txt "${ARCHIVE_FOLDER}/" 2>/dev/null
+	    fi
 
 	    echo "$(date) - Iterasi selesai. Mengulang dalam 60 detik..." >> "$LOG_FILE"
 	    sleep 60
