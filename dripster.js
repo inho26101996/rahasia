@@ -1,78 +1,126 @@
 const bs58 = require('bs58');
 const fs = require('fs');
-const fetch = require('node-fetch');
+const fetch = require("node-fetch");
+const chalk = require("chalk");
 const solanaWeb3 = require('@solana/web3.js');
-const { Keypair } = solanaWeb3;
+const {
+    Keypair,
+    PublicKey,
+} = solanaWeb3
 const { randomUUID } = require('crypto');
 
-function generateRandomUserAgent() {
-  const userAgents = [
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Safari/605.1.15',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:89.0) Gecko/20100101 Firefox/89.0',
-    'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:88.0) Gecko/20100101 Firefox/88.0',
-    'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Mobile/15E148 Safari/604.1',
-    'Mozilla/5.0 (Linux; Android 11; SM-G960U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36',
-  ];
-  return userAgents[Math.floor(Math.random() * userAgents.length)];
-}
+// Konfigurasi
+const TALLY_FORM_URL = 'https://api.tally.so/forms/wdvkJK/respond';
+const DELAY_MS = 1500; // Jeda antar permintaan (ms)
 
-function generateRandomDelay(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+async function sendToTally(address) {
+    try {
+        const response = await fetch(TALLY_FORM_URL, {
+            method: 'POST',
+            headers: {
+                'Host': 'api.tally.so',
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:136.0) Gecko/20100101 Firefox/136.0',
+                'Accept': 'application/json, text/plain, */*',
+                'Accept-Language': 'id,en-US;q=0.7,en;q=0.3',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Referer': 'https://tally.so/',
+                'Content-Type': 'application/json',
+                'Tally-Version': '2025-01-15',
+                'Origin': 'https://tally.so',
+                'Sec-Fetch-Dest': 'empty',
+                'Sec-Fetch-Mode': 'cors',
+                'Sec-Fetch-Site': 'same-site',
+                'Priority': 'u=0',
+                'Te': 'trailers'
+            },
+            body: JSON.stringify({
+                'sessionUuid': randomUUID(),
+                'respondentUuid': randomUUID(),
+                'responses': {
+                    '4c4c2153-a44e-49c2-987a-0061413d975a': address
+                },
+                'captchas': {},
+                'isCompleted': true,
+                'password': ''
+            })
+        });
 
-async function send(address) {
-  const userAgent = generateRandomUserAgent();
-  const delay = generateRandomDelay(1000, 5000); // Delay antara 1-5 detik
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(chalk.red(`Error sending to Tally.so for ${address}: ${response.status} - ${errorText}`));
+            return { error: true, status: response.status, message: errorText };
+        }
 
-  await new Promise((resolve) => setTimeout(resolve, delay));
+        const data = await response.json();
+        return data;
 
-  const response = await fetch('https://api.tally.so/forms/wdvkJK/respond', {
-    method: 'POST',
-    headers: {
-      'Host': 'api.tally.so',
-      'User-Agent': userAgent,
-      'Accept': 'application/json, text/plain, */*',
-      'Accept-Language': 'id,en-US;q=0.7,en;q=0.3',
-      'Accept-Encoding': 'gzip, deflate, br',
-      'Referer': 'https://tally.so/',
-      'Content-Type': 'application/json',
-      'Tally-Version': '2025-01-15',
-      'Content-Length': '257',
-      'Origin': 'https://tally.so',
-      'Sec-Fetch-Dest': 'empty',
-      'Sec-Fetch-Mode': 'cors',
-      'Sec-Fetch-Site': 'same-site',
-      'Priority': 'u=0',
-      'Te': 'trailers',
-    },
-    body: JSON.stringify({
-      sessionUuid: randomUUID(),
-      respondentUuid: randomUUID(),
-      responses: {
-        '4c4c2153-a44e-49c2-987a-0061413d975a': address,
-      },
-      captchas: {},
-      isCompleted: true,
-      password: '',
-    }),
-  });
-
-  return response.json();
+    } catch (error) {
+        console.error(chalk.red(`Fetch error for ${address}:`), error);
+        return { error: true, message: error.message };
+    }
 }
 
 (async () => {
-  const read2 = fs.readFileSync(`pk.txt`, 'UTF-8');
-  const list2 = read2.split(/\r?\n/);
-  for (var i = 0; i < list2.length; i++) {
-    // PERUBAHAN PENTING DI SINI:
-    var secretKeyBase58 = list2[i];
-    const secretKeyBytes = bs58.decode(secretKeyBase58);
-    const keypair = Keypair.fromSecretKey(secretKeyBytes);
-    console.log();
-    console.log(` [${i + 1}/${list2.length}] Public Address:`, keypair.publicKey.toBase58());
-    const confirmAddress = await send(keypair.publicKey.toBase58());
-    console.log(confirmAddress);
-  }
+    try {
+        const pkFile = 'pk.txt';
+        const fileContent = fs.readFileSync(pkFile, 'UTF-8');
+        const privateKeys = fileContent.trim().split(/\r?\n/).map(line => line.split('|')[0]);
+
+        const totalKeys = privateKeys.length;
+        console.log(chalk.green(`Processing ${totalKeys} private keys from ${pkFile}`));
+
+        for (let i = 0; i < totalKeys; i++) {
+            const secretKeyBase58 = privateKeys[i];
+
+            try {
+                const secretKeyBytes = bs58.decode(secretKeyBase58);
+                const keypair = Keypair.fromSecretKey(secretKeyBytes);
+                const publicKeyBase58 = keypair.publicKey.toBase58();
+
+                console.log();
+                console.log(chalk.cyan(`? [${i + 1}/${totalKeys}] Public Address:`), publicKeyBase58);
+
+                const tallyResponse = await sendToTally(publicKeyBase58);
+                console.log(tallyResponse);
+
+                if (tallyResponse && tallyResponse.submissionId) {
+                    console.log(chalk.green(`  > Successfully sent address to Tally.so`));
+                } else if (tallyResponse && tallyResponse.error) {
+                    console.log(chalk.yellow(`  > Problem sending to Tally.so:`), tallyResponse.message);
+                } else {
+                    console.log(chalk.yellow(`  > Unknown response from Tally.so:`), tallyResponse);
+                }
+
+                if (i < totalKeys - 1) {
+                    await new Promise(resolve => setTimeout(resolve, DELAY_MS));
+                }
+
+            } catch (error) {
+                console.error(chalk.red(`Error processing private key ${secretKeyBase58}:`), error);
+            }
+        }
+
+        console.log(chalk.green('\nFinished processing all private keys.'));
+
+    } catch (error) {
+        console.error(chalk.red('Error reading or processing pk.txt:'), error);
+    }
 })();
+
+function unix(rarityLocked) {
+    var date = new Date(rarityLocked)
+    let year = date.getFullYear();
+    let month = date.getMonth() + 1;
+    let day = date.getDate();
+    let hour = date.getHours();
+    let minute = date.getMinutes();
+    let second = date.getSeconds();
+    return ({
+        day,
+        month,
+        year,
+        hour,
+        minute,
+        second
+    });
+}
